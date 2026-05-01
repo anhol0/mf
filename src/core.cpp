@@ -1,7 +1,9 @@
 #include "core.hpp"
 #include "giomm/appinfo.h"
 #include "gtkmm/entry.h"
+#include "gtkmm/enums.h"
 #include "gtkmm/object.h"
+#include "pangomm/layout.h"
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
@@ -41,8 +43,15 @@ void Application::setup_factory_signals() {
     factory->signal_setup().connect([](const Glib::RefPtr<Gtk::ListItem> &item) {
         // Creating layout of properties of the element
         auto box = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
+        box->set_size_request(100, 100);
+        box->set_halign(Gtk::Align::CENTER);
+        box->set_valign(Gtk::Align::CENTER);
         auto image  = Gtk::make_managed<Gtk::Image>();
+        image->set_pixel_size(64);
         auto label = Gtk::make_managed<Gtk::Label>();
+        label->set_max_width_chars(10);
+        label->set_ellipsize(Pango::EllipsizeMode::END);
+        label->set_wrap(false);
         
         // Adding everything to the 
         box->append(*image);
@@ -70,7 +79,6 @@ void Application::setup_factory_signals() {
 
 void Application::update_grid(Gtk::GridView &grid) {
     selection = Gtk::SingleSelection::create(store);
-    grid.set_min_columns(5);
     grid = Gtk::GridView(selection, factory);
 }
 
@@ -96,14 +104,17 @@ void Application::setup_toolbar_signals() {
     });
 
     btn_forward->signal_clicked().connect([&]() {
-        if(!prev_dir.empty()) {
-            navigate_to(prev_dir);
+        if(!prev_dirs.empty()) {
+            navigate_to(prev_dirs[current_prev_dir_index]);
+            prev_dirs.pop_back();
+            current_prev_dir_index = prev_dirs.size() - 1;
         }
     });
 
     btn_back->signal_clicked().connect([&]() {
         auto parent = std::filesystem::path(current_dir).parent_path();
-        prev_dir = current_dir;
+        prev_dirs.push_back(current_dir);
+        current_prev_dir_index = prev_dirs.size() - 1;
         navigate_to(parent);
     });
 

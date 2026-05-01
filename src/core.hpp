@@ -1,9 +1,11 @@
 #ifndef CORE_HPP
 #define CORE_HPP
 
+#include <cstddef>
 #include <cstdlib>
 #include <gtkmm.h>
 #include <memory>
+#include <vector>
 
 class File {
 
@@ -35,7 +37,9 @@ class Application : public Gtk::Window {
     protected:
         const std::string home_dir = std::getenv("HOME");
         std::string current_dir = std::getenv("HOME");
-        std::string prev_dir = "";
+        // std::string prev_dir = "";
+        std::vector<std::string> prev_dirs;
+        size_t current_prev_dir_index = 0;
         // Root nodes of the window
         Gtk::Box *root = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
         Gtk::Box *toolbar = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 4);
