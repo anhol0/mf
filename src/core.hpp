@@ -22,6 +22,7 @@ class Application : public Gtk::Window {
             setup_factory_signals();
             update_grid(grid);
             setup_grid_signals();
+            setup_toolbar_signals();
             auto scroll = Gtk::make_managed<Gtk::ScrolledWindow>();
             scroll->set_child(grid);
             scroll->set_vexpand(true);
@@ -30,8 +31,11 @@ class Application : public Gtk::Window {
             root->append(*scroll);
             set_child(*root);
         }
+
     protected:
+        const std::string home_dir = std::getenv("HOME");
         std::string current_dir = std::getenv("HOME");
+        std::string prev_dir = "";
         // Root nodes of the window
         Gtk::Box *root = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::VERTICAL);
         Gtk::Box *toolbar = Gtk::make_managed<Gtk::Box>(Gtk::Orientation::HORIZONTAL, 4);
@@ -49,12 +53,16 @@ class Application : public Gtk::Window {
         std::shared_ptr<Gtk::SignalListItemFactory> factory = Gtk::SignalListItemFactory::create();
         Gtk::SearchBar bar;
         
-        void enum_dir(std::shared_ptr<Gio::ListStore<Gio::File>> store, std::string &dir); 
-        void navigate_to(std::string &path); 
-        void setup_grid_content(std::string &path);
+        // Misc methods
+        void enum_dir(std::shared_ptr<Gio::ListStore<Gio::File>> store, const std::string &dir); 
+        void navigate_to(const std::string &path); 
+
+        // Setup methods
+        void setup_grid_content(const std::string &path);
         void setup_toolbar();
         void setup_factory_signals();
         void setup_grid_signals();
+        void setup_toolbar_signals();
         void update_grid(Gtk::GridView &grid);
 };
 

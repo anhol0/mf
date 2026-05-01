@@ -8,9 +8,9 @@
 #include <memory>
 #include <ostream>
 
-void Application::setup_grid_content(std::string &path) { 
+void Application::setup_grid_content(const std::string &path) { 
     store = Gio::ListStore<Gio::File>::create();
-
+    
     // Creating the list of the files 
     enum_dir(store, path); 
     
@@ -90,19 +90,42 @@ void Application::setup_grid_signals() {
     }); 
 }
 
+void Application::setup_toolbar_signals() {
+    btn_home->signal_clicked().connect([&]() {
+        navigate_to(home_dir);
+    });
+
+    btn_forward->signal_clicked().connect([&]() {
+        if(!prev_dir.empty()) {
+            navigate_to(prev_dir);
+        }
+    });
+
+    btn_back->signal_clicked().connect([&]() {
+        auto parent = std::filesystem::path(current_dir).parent_path();
+        prev_dir = current_dir;
+        navigate_to(parent);
+    });
+
+    path_bar->signal_activate().connect([&]() {
+        auto p = path_bar->get_text();
+        if(std::filesystem::exists(std::filesystem::path(p))) {
+            navigate_to(p);
+        }
+    });
+}
+
 // Misc functions 
-void Application::enum_dir(std::shared_ptr<Gio::ListStore<Gio::File>> store, std::string &dir) {
-    auto current_dir_f = Gio::File::create_for_path(dir);
-    if(current_dir_f->has_parent()) {
-        auto parent = current_dir_f->get_parent();
-        store->append(parent);
-    }
+void Application::enum_dir(std::shared_ptr<Gio::ListStore<Gio::File>> store, const std::string &dir) {
     for(const auto& file: std::filesystem::directory_iterator(dir)) {
         store->append(Gio::File::create_for_path(file.path()));                    
     }
 }
-void Application::navigate_to(std::string &path) {
+void Application::navigate_to(const std::string &path) {
     current_dir = path;
     store->remove_all();
-    enum_dir(store, path);
+    enum_dir(store, current_dir);
+    if(path_bar) {
+        path_bar->set_text(current_dir);
+    }
 }
